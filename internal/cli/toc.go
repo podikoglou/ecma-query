@@ -25,27 +25,29 @@ func init() {
 func runToc(_ *cobra.Command, args []string) error {
 	s := getSpec()
 
-	var root *spec.ClauseNode
 	if len(args) > 0 && args[0] != "" {
-		var err error
-		root, err = resolveTocRoot(s, args[0])
-		if err != nil {
+		cn, ok := s.SectionNums[args[0]]
+		if !ok {
 			ExitNotFound(args[0])
 			return nil
 		}
-	} else {
-		root = s.Root
+		entries := buildTocFromNode(cn, tocDepth)
+
+		if format == FormatJSON {
+			printJSON(TocResponse{
+				Root:    &cn.Section,
+				Entries: entries,
+			})
+		} else {
+			renderTocMD(entries, 0)
+		}
+		return nil
 	}
 
-	entries := buildToc(root, 0, tocDepth)
+	entries := buildTocTopLevel(s, tocDepth)
 
 	if format == FormatJSON {
-		var rootSection *string
-		if root != nil && root.Section != "" {
-			rootSection = &root.Section
-		}
 		printJSON(TocResponse{
-			Root:    rootSection,
 			Entries: entries,
 		})
 	} else {
@@ -54,15 +56,26 @@ func runToc(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func resolveTocRoot(s *spec.Spec, query string) (*spec.ClauseNode, error) {
-	if cn, ok := s.SectionNums[query]; ok {
-		return cn, nil
+func buildTocTopLevel(s *spec.Spec, maxDepth int) []TocEntry {
+	var entries []TocEntry
+	for _, cn := range s.Nodes {
+		if cn.Parent != nil {
+			continue
+		}
+		entry := TocEntry{
+			Section: cn.Section,
+			Title:   cn.H1Text,
+		}
+		if maxDepth > 1 && len(cn.Children) > 0 {
+			entry.Children = buildTocFromNode(cn, maxDepth-1)
+		}
+		entries = append(entries, entry)
 	}
-	return nil, fmt.Errorf("section not found: %s", query)
+	return entries
 }
 
-func buildToc(node *spec.ClauseNode, depth, maxDepth int) []TocEntry {
-	if node == nil || depth >= maxDepth {
+func buildTocFromNode(node *spec.ClauseNode, depth int) []TocEntry {
+	if node == nil || depth <= 0 {
 		return nil
 	}
 	var entries []TocEntry
@@ -71,8 +84,8 @@ func buildToc(node *spec.ClauseNode, depth, maxDepth int) []TocEntry {
 			Section: child.Section,
 			Title:   child.H1Text,
 		}
-		if depth+1 < maxDepth && len(child.Children) > 0 {
-			entry.Children = buildToc(child, depth+1, maxDepth)
+		if depth > 1 && len(child.Children) > 0 {
+			entry.Children = buildTocFromNode(child, depth-1)
 		}
 		entries = append(entries, entry)
 	}

@@ -51,6 +51,25 @@ func resolve(s *spec.Spec, query string) (*spec.ClauseNode, []*spec.ClauseNode, 
 		return nil, nodes, matches
 	}
 
+	if idx := strings.Index(query, "("); idx >= 0 {
+		opName := strings.TrimSpace(query[:idx])
+		normName := normalizeQuery(opName)
+		if nodes, ok := s.OpsByName[normName]; ok {
+			if len(nodes) == 1 {
+				return nodes[0], nil, nil
+			}
+			matches := make([]MatchResult, 0, len(nodes))
+			for _, n := range nodes {
+				matches = append(matches, MatchResult{
+					Kind:    n.Type,
+					Name:    n.Name,
+					Section: n.Section,
+				})
+			}
+			return nil, nodes, matches
+		}
+	}
+
 	bracketed := query
 	if !strings.HasPrefix(query, "[[") {
 		bracketed = "[[" + query + "]]"
