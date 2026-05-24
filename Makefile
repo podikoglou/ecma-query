@@ -1,6 +1,3 @@
 .PHONY: build
-build: internal/spec/spec.html
+build:
 	go build ./...
-
-internal/spec/spec.html: ecma262/spec.html
-	cp $< $@

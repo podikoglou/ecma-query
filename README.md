@@ -72,7 +72,7 @@ ecma-query grammar IfStatement --format json
 ### Build from source
 
 ```
-git clone --recurse-submodules https://github.com/podikoglou/ecma-query.git
+git clone https://github.com/podikoglou/ecma-query.git
 cd ecma-query
 make
 ```
