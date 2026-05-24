@@ -12,9 +12,9 @@ type OutputFormat string
 
 // Output format constants.
 const (
-	FormatJSON     OutputFormat = "json"
-	FormatMarkdown OutputFormat = "md"
-	FormatEBNF     OutputFormat = "ebnf"
+	FormatJSON     OutputFormat = "json" // FormatJSON produces JSON output.
+	FormatMarkdown OutputFormat = "md"   // FormatMarkdown produces Markdown output.
+	FormatEBNF     OutputFormat = "ebnf" // FormatEBNF produces EBNF output.
 )
 
 // ErrorCode is an exit code for structured error responses.
@@ -22,25 +22,26 @@ type ErrorCode int
 
 // Exit code constants.
 const (
-	CodeSuccess   ErrorCode = 0
-	CodeNotFound  ErrorCode = 1
-	CodeAmbiguous ErrorCode = 2
+	CodeSuccess   ErrorCode = 0 // CodeSuccess indicates success.
+	CodeNotFound  ErrorCode = 1 // CodeNotFound indicates the entity was not found.
+	CodeAmbiguous ErrorCode = 2 // CodeAmbiguous indicates the query matched multiple entities.
 )
 
+// format is the global output format, configurable via --format on the root command.
 var format = FormatJSON
 
 // ErrorResponse is a structured error returned to stdout.
 type ErrorResponse struct {
-	Error   string        `json:"error"`
-	Query   string        `json:"query,omitempty"`
-	Matches []MatchResult `json:"matches,omitempty"`
+	Error   string        `json:"error"`             // Error is the error type string (e.g. "not_found").
+	Query   string        `json:"query,omitempty"`   // Query is the input that caused the error.
+	Matches []MatchResult `json:"matches,omitempty"` // Matches lists possible matches for disambiguation.
 }
 
 // MatchResult identifies a single match in a disambiguation response.
 type MatchResult struct {
-	Kind    string `json:"kind"`
-	Name    string `json:"name,omitempty"`
-	Section string `json:"section,omitempty"`
+	Kind    string `json:"kind"`              // Kind is the entity kind (e.g. "operation", "method").
+	Name    string `json:"name,omitempty"`    // Name is the display name of the match.
+	Section string `json:"section,omitempty"` // Section is the section number containing the match.
 }
 
 func writeError(code ErrorCode, resp ErrorResponse) {
