@@ -64,30 +64,6 @@ func TestSuggestions(t *testing.T) {
 	t.Logf("suggestions for 'tonumbr': %v", succ)
 }
 
-func TestExtractSteps(t *testing.T) {
-	s := getSpec()
-	cn, ok := s.ByID["sec-toprimitive"]
-	if !ok {
-		t.Skip("sec-toprimitive not found")
-	}
-	steps := extractSteps(cn)
-	if len(steps) == 0 {
-		t.Log("ToPrimitive has no algorithm steps in emu-alg")
-	} else {
-		t.Logf("ToPrimitive has %d steps", len(steps))
-	}
-}
-
-func TestBuildBreadcrumb(t *testing.T) {
-	s := getSpec()
-	cn, ok := s.ByID["sec-toprimitive"]
-	if !ok {
-		t.Skip("sec-toprimitive not found")
-	}
-	crumbs := buildBreadcrumb(cn)
-	t.Logf("breadcrumb: %v", crumbs)
-}
-
 func TestKindLabel(t *testing.T) {
 	s := getSpec()
 	for _, cn := range s.Nodes {
@@ -129,33 +105,6 @@ func TestResolveNormalizedOpName(t *testing.T) {
 		t.Skip("ToNumber ( _argument_ ) not resolved")
 	}
 	t.Logf("resolved ToNumber ( _argument_ ): %s", cn.Name)
-}
-
-func TestParseGrammarProd(t *testing.T) {
-	text := "IdentifierReference ::\n  Identifier\n  ~ `await` Identifier"
-	item := parseGrammarProd(text)
-	if item.LHS != "IdentifierReference" {
-		t.Errorf("expected LHS 'IdentifierReference', got %q", item.LHS)
-	}
-	if len(item.Alternatives) < 2 {
-		t.Errorf("expected at least 2 alternatives, got %d", len(item.Alternatives))
-	}
-	t.Logf("parsed grammar: %+v", item)
-}
-
-func TestParseRHSTerms(t *testing.T) {
-	terms := parseRHSTerms("Identifier `await` Identifier")
-	if len(terms) == 0 {
-		t.Fatal("expected terms")
-	}
-	t.Logf("terms: %v", terms)
-}
-
-func TestExtractSummary(t *testing.T) {
-	s := getSpec()
-	cn := s.Nodes[0]
-	summary := extractSummary(cn)
-	t.Logf("summary from first node: %q", summary[:min(len(summary), 100)])
 }
 
 func TestClauseURL(t *testing.T) {

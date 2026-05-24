@@ -1,15 +1,9 @@
+// Package cli tests.
 package cli
 
-import (
-	"testing"
-
-	"golang.org/x/net/html"
-)
+import "testing"
 
 func TestGetCommand(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
-
 	err := runGet(nil, []string{"sec-toprimitive"})
 	if err != nil {
 		t.Logf("get sec-toprimitive returned error: %v", err)
@@ -17,8 +11,6 @@ func TestGetCommand(t *testing.T) {
 }
 
 func TestSearchCommand(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	searchLimit = 5
 	searchKind = ""
 	err := runSearch(nil, []string{"object", "property"})
@@ -28,8 +20,6 @@ func TestSearchCommand(t *testing.T) {
 }
 
 func TestTocCommand(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	tocDepth = 1
 	err := runToc(nil, []string{})
 	if err != nil {
@@ -38,8 +28,6 @@ func TestTocCommand(t *testing.T) {
 }
 
 func TestTocCommandWithSection(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	tocDepth = 2
 	err := runToc(nil, []string{"1"})
 	if err != nil {
@@ -48,8 +36,6 @@ func TestTocCommandWithSection(t *testing.T) {
 }
 
 func TestSearchCommandOutput(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	searchLimit = 3
 	searchKind = ""
 	err := runSearch(nil, []string{"prototype"})
@@ -59,8 +45,6 @@ func TestSearchCommandOutput(t *testing.T) {
 }
 
 func TestXrefCommandOutput(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	xrefDirection = "both"
 	err := runXref(nil, []string{"sec-toprimitive"})
 	if err != nil {
@@ -69,8 +53,6 @@ func TestXrefCommandOutput(t *testing.T) {
 }
 
 func TestXrefCommandByOpName(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	xrefDirection = "both"
 	err := runXref(nil, []string{"ToNumber"})
 	if err != nil {
@@ -78,78 +60,19 @@ func TestXrefCommandByOpName(t *testing.T) {
 	}
 }
 
-func TestGrammarCommandEBNF(t *testing.T) {
-	grammarFormat = "ebnf"
+func TestGrammarCommand(t *testing.T) {
 	err := runGrammar(nil, []string{"HexEscapeSequence"})
 	if err != nil {
 		t.Logf("grammar returned error: %v", err)
 	}
 }
 
-func TestGrammarCommandJSON(t *testing.T) {
-	grammarFormat = "json"
-	err := runGrammar(nil, []string{"HexEscapeSequence"})
-	if err != nil {
-		t.Logf("grammar JSON returned error: %v", err)
-	}
-}
-
-func TestGrammarCommandMD(t *testing.T) {
-	grammarFormat = "md"
-	err := runGrammar(nil, []string{"HexEscapeSequence"})
-	if err != nil {
-		t.Logf("grammar MD returned error: %v", err)
-	}
-}
-
 func TestGetWithMaxTokens(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
 	getMaxTokens = 100
 	defer func() { getMaxTokens = 0 }()
 	err := runGet(nil, []string{"sec-toprimitive"})
 	if err != nil {
 		t.Logf("get with max-tokens returned error: %v", err)
-	}
-}
-
-func TestGetMarkdown(t *testing.T) {
-	format = FormatMarkdown
-	defer func() { format = FormatJSON }()
-	err := runGet(nil, []string{"sec-toprimitive"})
-	if err != nil {
-		t.Logf("get markdown returned error: %v", err)
-	}
-}
-
-func TestSearchMarkdown(t *testing.T) {
-	format = FormatMarkdown
-	defer func() { format = FormatJSON }()
-	searchLimit = 3
-	searchKind = ""
-	err := runSearch(nil, []string{"prototype"})
-	if err != nil {
-		t.Logf("search markdown returned error: %v", err)
-	}
-}
-
-func TestTocMarkdown(t *testing.T) {
-	format = FormatMarkdown
-	defer func() { format = FormatJSON }()
-	tocDepth = 1
-	err := runToc(nil, []string{})
-	if err != nil {
-		t.Logf("toc markdown returned error: %v", err)
-	}
-}
-
-func TestXrefMarkdown(t *testing.T) {
-	format = FormatMarkdown
-	defer func() { format = FormatJSON }()
-	xrefDirection = "both"
-	err := runXref(nil, []string{"sec-toprimitive"})
-	if err != nil {
-		t.Logf("xref markdown returned error: %v", err)
 	}
 }
 
@@ -174,33 +97,4 @@ func TestMatchKind(t *testing.T) {
 			break
 		}
 	}
-}
-
-func TestContentHasEmuAlg(t *testing.T) {
-	s := getSpec()
-	found := false
-	for _, cn := range s.Nodes {
-		if cn.HTMLNode != nil {
-			if hasElement(cn.HTMLNode, "emu-alg") {
-				found = true
-				t.Logf("clause %s has emu-alg", cn.ID)
-				break
-			}
-		}
-	}
-	if !found {
-		t.Skip("no emu-alg elements found")
-	}
-}
-
-func hasElement(n *html.Node, tag string) bool {
-	if n.Type == html.ElementNode && n.Data == tag {
-		return true
-	}
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if hasElement(c, tag) {
-			return true
-		}
-	}
-	return false
 }
