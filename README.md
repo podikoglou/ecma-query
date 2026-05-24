@@ -5,7 +5,7 @@ CLI for querying the ECMAScript specification. Designed for LLM agent consumptio
 ## Install
 
 ```
-go install github.com/podikoglou/ecma-query@latest
+go install github.com/podikoglou/ecma-query@v0.3.0
 ```
 
 ## Usage
