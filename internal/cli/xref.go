@@ -1,23 +1,149 @@
-// Package cli xref command: finds incoming and outgoing references for an entity.
 package cli
 
 import (
+	"fmt"
+
+	"github.com/podikoglou/ecma-query/internal/spec"
 	"github.com/spf13/cobra"
 )
 
-// xrefCmd is the "xref" subcommand for resolving cross-references.
 var xrefCmd = &cobra.Command{
 	Use:   "xref <IDENTIFIER>",
 	Short: "Cross-reference resolution",
 	Long:  "Find what references a given entity and what it references.",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(_ *cobra.Command, _ []string) error {
-		return nil
-	},
+	RunE:  runXref,
 }
 
-var xrefDirection string // xrefDirection filters references: incoming, outgoing, or both (--direction).
+var xrefDirection string
 
 func init() {
 	xrefCmd.Flags().StringVar(&xrefDirection, "direction", "both", "incoming, outgoing, or both")
+}
+
+func runXref(_ *cobra.Command, args []string) error {
+	query := args[0]
+	s := getSpec()
+
+	cn, multi, matches := resolve(s, query)
+	if cn == nil && len(multi) > 1 {
+		ExitAmbiguous(query, matches)
+		return nil
+	}
+	if cn == nil {
+		ExitNotFound(query)
+		return nil
+	}
+
+	xrefs := buildXrefPairs(s, cn)
+
+	if format == FormatJSON {
+		printJSON(buildXrefJSON(cn, xrefs))
+	} else {
+		renderXrefMD(cn, xrefs)
+	}
+	return nil
+}
+
+type xrefPair struct {
+	item XrefItem
+	isIn bool
+}
+
+func buildXrefPairs(s *spec.Spec, cn *spec.ClauseNode) []xrefPair {
+	var pairs []xrefPair
+
+	if xrefDirection == "both" || xrefDirection == "incoming" {
+		for sourceID := range s.Incoming[cn.ID] {
+			if source, ok := s.ByID[sourceID]; ok {
+				pairs = append(pairs, xrefPair{
+					item: XrefItem{
+						Section: source.Section,
+						Title:   source.H1Text,
+					},
+					isIn: true,
+				})
+			}
+		}
+	}
+
+	if xrefDirection == "both" || xrefDirection == "outgoing" {
+		for targetID := range s.Outgoing[cn.ID] {
+			if target, ok := s.ByID[targetID]; ok {
+				context := ""
+				for _, xr := range s.XRefs {
+					if xr.Source == cn.ID && xr.Target == targetID {
+						context = xr.Context
+						break
+					}
+				}
+				pairs = append(pairs, xrefPair{
+					item: XrefItem{
+						Section: target.Section,
+						Title:   target.H1Text,
+						Context: context,
+					},
+					isIn: false,
+				})
+			}
+		}
+	}
+
+	return pairs
+}
+
+func buildXrefJSON(cn *spec.ClauseNode, pairs []xrefPair) XrefResponse {
+	resp := XrefResponse{
+		Target:        cn.H1Text,
+		TargetSection: cn.Section,
+	}
+
+	for _, p := range pairs {
+		if p.isIn {
+			resp.Incoming = append(resp.Incoming, p.item)
+		} else {
+			resp.Outgoing = append(resp.Outgoing, p.item)
+		}
+	}
+	return resp
+}
+
+func renderXrefMD(cn *spec.ClauseNode, pairs []xrefPair) {
+	fmt.Printf("## %s\n\n", cn.H1Text)
+	if cn.Section != "" {
+		fmt.Printf("Section: %s\n\n", cn.Section)
+	}
+
+	var incoming, outgoing []xrefPair
+	for _, p := range pairs {
+		if p.isIn {
+			incoming = append(incoming, p)
+		} else {
+			outgoing = append(outgoing, p)
+		}
+	}
+
+	if len(incoming) > 0 {
+		fmt.Println("### Referenced by")
+		for _, p := range incoming {
+			if p.item.Section != "" {
+				fmt.Printf("- %s %s\n", p.item.Section, p.item.Title)
+			} else {
+				fmt.Printf("- %s\n", p.item.Title)
+			}
+		}
+		fmt.Println()
+	}
+
+	if len(outgoing) > 0 {
+		fmt.Println("### References")
+		for _, p := range outgoing {
+			if p.item.Section != "" {
+				fmt.Printf("- %s %s\n", p.item.Section, p.item.Title)
+			} else {
+				fmt.Printf("- %s\n", p.item.Title)
+			}
+		}
+		fmt.Println()
+	}
 }
