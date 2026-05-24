@@ -1,9 +1,11 @@
+// Package cli toc command: table of contents and structural navigation.
 package cli
 
 import (
 	"github.com/spf13/cobra"
 )
 
+// tocCmd is the "toc" subcommand that prints the spec outline or children of a section.
 var tocCmd = &cobra.Command{
 	Use:   "toc [SECTION]",
 	Short: "Table of contents / structural navigation",
@@ -14,7 +16,7 @@ var tocCmd = &cobra.Command{
 	},
 }
 
-var tocDepth int
+var tocDepth int // tocDepth is the number of levels to show (--depth).
 
 func init() {
 	tocCmd.Flags().IntVar(&tocDepth, "depth", 2, "number of levels to show")
