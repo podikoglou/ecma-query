@@ -8,6 +8,14 @@ CLI for querying the ECMAScript specification. Designed for LLM agent consumptio
 go install github.com/podikoglou/ecma-query@latest
 ```
 
+### Install Skill
+
+```
+npx skills@latest add podikoglou/ecma-query
+pnpx skills@latest add podikoglou/ecma-query
+bunx skills@latest add podikoglou/ecma-query
+```
+
 ## Usage
 
 ```
