@@ -27,27 +27,28 @@ func runXref(_ *cobra.Command, args []string) error {
 
 	cn, multi, matches := resolve(s, query)
 	if cn == nil && len(multi) > 1 {
-		ExitAmbiguous(query, matches)
+		exitAmbiguous(query, matches)
 		return nil
 	}
 	if cn == nil {
-		ExitNotFound(query)
+		exitNotFound(query)
 		return nil
 	}
 
 	xrefs := buildXrefPairs(s, cn)
-
-	if format == FormatJSON {
-		printJSON(buildXrefJSON(cn, xrefs))
-	} else {
-		renderXrefMD(cn, xrefs)
-	}
+	renderXrefMD(cn, xrefs)
 	return nil
 }
 
 type xrefPair struct {
-	item XrefItem
+	item xrefItem
 	isIn bool
+}
+
+type xrefItem struct {
+	Section string
+	Title   string
+	Context string
 }
 
 func buildXrefPairs(s *spec.Spec, cn *spec.ClauseNode) []xrefPair {
@@ -57,7 +58,7 @@ func buildXrefPairs(s *spec.Spec, cn *spec.ClauseNode) []xrefPair {
 		for sourceID := range s.Incoming[cn.ID] {
 			if source, ok := s.ByID[sourceID]; ok {
 				pairs = append(pairs, xrefPair{
-					item: XrefItem{
+					item: xrefItem{
 						Section: source.Section,
 						Title:   source.H1Text,
 					},
@@ -78,7 +79,7 @@ func buildXrefPairs(s *spec.Spec, cn *spec.ClauseNode) []xrefPair {
 					}
 				}
 				pairs = append(pairs, xrefPair{
-					item: XrefItem{
+					item: xrefItem{
 						Section: target.Section,
 						Title:   target.H1Text,
 						Context: context,
@@ -90,22 +91,6 @@ func buildXrefPairs(s *spec.Spec, cn *spec.ClauseNode) []xrefPair {
 	}
 
 	return pairs
-}
-
-func buildXrefJSON(cn *spec.ClauseNode, pairs []xrefPair) XrefResponse {
-	resp := XrefResponse{
-		Target:        cn.H1Text,
-		TargetSection: cn.Section,
-	}
-
-	for _, p := range pairs {
-		if p.isIn {
-			resp.Incoming = append(resp.Incoming, p.item)
-		} else {
-			resp.Outgoing = append(resp.Outgoing, p.item)
-		}
-	}
-	return resp
 }
 
 func renderXrefMD(cn *spec.ClauseNode, pairs []xrefPair) {
