@@ -30,7 +30,7 @@ ecma-query get sec-toprimitive
 ecma-query get Array.prototype.map
 ```
 
-Options: `--depth <n>`, `--brief`, `--steps-only`, `--max-tokens <n>`, `--chunk <n>`
+Options: `--depth <n>`, `--brief`, `--max-tokens <n>`, `--chunk <n>`
 
 **search** — full-text search with ranked snippets:
 ```

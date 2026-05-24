@@ -102,17 +102,6 @@ func TestGrammarCommandMD(t *testing.T) {
 	}
 }
 
-func TestGetStepsOnly(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
-	getStepsOnly = true
-	defer func() { getStepsOnly = false }()
-	err := runGet(nil, []string{"sec-toprimitive"})
-	if err != nil {
-		t.Logf("get steps-only returned error: %v", err)
-	}
-}
-
 func TestGetBrief(t *testing.T) {
 	format = FormatJSON
 	defer func() { format = FormatJSON }()

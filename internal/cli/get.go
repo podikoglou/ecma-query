@@ -27,7 +27,6 @@ Resolution order:
 
 var (
 	getDepth     int
-	getStepsOnly bool
 	getBrief     bool
 	getMaxTokens int
 	getChunk     int
@@ -35,7 +34,6 @@ var (
 
 func init() {
 	getCmd.Flags().IntVar(&getDepth, "depth", 1, "recursion depth for inlining nested operations")
-	getCmd.Flags().BoolVar(&getStepsOnly, "steps-only", false, "return only the numbered algorithm steps")
 	getCmd.Flags().BoolVar(&getBrief, "brief", false, "return signature and summary only (--depth 0)")
 	getCmd.Flags().IntVar(&getMaxTokens, "max-tokens", 0, "soft truncate output at approximately N tokens")
 	getCmd.Flags().IntVar(&getChunk, "chunk", 1, "when previous output was truncated, request chunk N")
@@ -78,9 +76,6 @@ func runGet(_ *cobra.Command, args []string) error {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "render error:", err)
 			os.Exit(1)
-		}
-		if getStepsOnly {
-			md = renderStepsOnly(cn, s)
 		}
 		if getMaxTokens > 0 {
 			tokens := estimateTokens(md)
@@ -126,14 +121,10 @@ func buildGetJSON(cn *spec.ClauseNode, s *spec.Spec) GetResponse {
 		Signature:  cn.H1Text,
 	}
 
-	if !getStepsOnly {
-		resp.Summary = extractSummary(cn)
-	}
+	resp.Summary = extractSummary(cn)
 
 	steps := extractSteps(cn)
-	if getStepsOnly && len(steps) > 0 {
-		resp.Steps = steps
-	} else if getDepth > 0 && len(steps) > 0 {
+	if getDepth > 0 && len(steps) > 0 {
 		resp.Steps = steps
 	}
 
@@ -167,14 +158,4 @@ func buildGetJSON(cn *spec.ClauseNode, s *spec.Spec) GetResponse {
 	}
 
 	return resp
-}
-
-func renderStepsOnly(cn *spec.ClauseNode, _ *spec.Spec) string {
-	var buf strings.Builder
-	steps := extractSteps(cn)
-	for _, step := range steps {
-		buf.WriteString(step)
-		buf.WriteString("\n")
-	}
-	return buf.String()
 }
