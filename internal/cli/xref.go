@@ -1,9 +1,11 @@
+// Package cli xref command: finds incoming and outgoing references for an entity.
 package cli
 
 import (
 	"github.com/spf13/cobra"
 )
 
+// xrefCmd is the "xref" subcommand for resolving cross-references.
 var xrefCmd = &cobra.Command{
 	Use:   "xref <IDENTIFIER>",
 	Short: "Cross-reference resolution",
@@ -14,7 +16,7 @@ var xrefCmd = &cobra.Command{
 	},
 }
 
-var xrefDirection string
+var xrefDirection string // xrefDirection filters references: incoming, outgoing, or both (--direction).
 
 func init() {
 	xrefCmd.Flags().StringVar(&xrefDirection, "direction", "both", "incoming, outgoing, or both")
