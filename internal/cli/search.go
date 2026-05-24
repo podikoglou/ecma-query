@@ -32,8 +32,6 @@ func runSearch(_ *cobra.Command, args []string) error {
 
 	tokens := tokenizeSearch(query)
 	if len(tokens) == 0 {
-		resp := SearchResponse{Query: query, Total: 0, Results: nil}
-		printJSON(resp)
 		return nil
 	}
 
@@ -88,43 +86,23 @@ func runSearch(_ *cobra.Command, args []string) error {
 		limit = len(results)
 	}
 
-	searchResults := make([]SearchResult, 0, limit)
 	for i := 0; i < limit; i++ {
 		r := results[i]
 		snippet := extractSnippet(r.cn, tokens[0], 60)
-		searchResults = append(searchResults, SearchResult{
-			Kind:    kindLabel(r.cn),
-			Section: r.cn.Section,
-			Title:   r.cn.H1Text,
-			Snippet: snippet,
-			URL:     clauseURL(r.cn.ID),
-		})
-	}
-
-	resp := SearchResponse{
-		Query:   query,
-		Total:   len(searchResults),
-		Results: searchResults,
-	}
-
-	if format == FormatJSON {
-		printJSON(resp)
-	} else {
-		for _, r := range searchResults {
-			md := "## " + r.Title + "\n"
-			if r.Section != "" {
-				md += "Section: " + r.Section + "\n"
-			}
-			md += "Kind: " + r.Kind + "\n"
-			if r.Snippet != "" {
-				md += "> " + r.Snippet + "\n"
-			}
-			if r.URL != "" {
-				md += r.URL + "\n"
-			}
-			md += "\n"
-			fmt.Print(md)
+		md := "## " + r.cn.H1Text + "\n"
+		if r.cn.Section != "" {
+			md += "Section: " + r.cn.Section + "\n"
 		}
+		md += "Kind: " + kindLabel(r.cn) + "\n"
+		if snippet != "" {
+			md += "> " + snippet + "\n"
+		}
+		url := clauseURL(r.cn.ID)
+		if url != "" {
+			md += url + "\n"
+		}
+		md += "\n"
+		fmt.Print(md)
 	}
 	return nil
 }
