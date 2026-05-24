@@ -1,9 +1,11 @@
+// Package cli search command: full-text search across the spec with ranked results.
 package cli
 
 import (
 	"github.com/spf13/cobra"
 )
 
+// searchCmd is the "search" subcommand for full-text exploration across the spec.
 var searchCmd = &cobra.Command{
 	Use:   "search <QUERY>",
 	Short: "Full-text search across the spec",
@@ -14,8 +16,10 @@ var searchCmd = &cobra.Command{
 	},
 }
 
-var searchLimit int
-var searchKind string
+var (
+	searchLimit int    // searchLimit is the maximum number of results (--limit).
+	searchKind  string // searchKind filters results by entity kind (--kind).
+)
 
 func init() {
 	searchCmd.Flags().IntVar(&searchLimit, "limit", 10, "maximum number of results")
