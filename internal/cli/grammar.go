@@ -9,7 +9,7 @@ var grammarCmd = &cobra.Command{
 	Short: "Grammar production query",
 	Long:  "Retrieve grammar productions. Defaults to EBNF output (instead of the global JSON default).",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return nil
 	},
 }

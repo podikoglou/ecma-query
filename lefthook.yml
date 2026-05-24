@@ -1,7 +1,6 @@
 pre-commit:
   parallel: true
   jobs:
-    - name: gofmt
+    - name: golangci-lint
       glob: "*.go"
-      run: gofmt -w {staged_files}
-      stage_fixed: true
+      run: golangci-lint run

@@ -9,7 +9,7 @@ var searchCmd = &cobra.Command{
 	Short: "Full-text search across the spec",
 	Long:  "Returns ranked results with snippets for exploratory queries.",
 	Args:  cobra.MinimumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return nil
 	},
 }

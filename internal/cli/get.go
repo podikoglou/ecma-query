@@ -17,7 +17,7 @@ Resolution order:
   5. Internal slot (e.g. [[Prototype]])
   6. Spec type (e.g. PropertyDescriptor)`,
 	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, args []string) error {
 		ExitNotFound(args[0])
 		return nil
 	},

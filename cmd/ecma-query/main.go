@@ -1,3 +1,4 @@
+// ecma-query is a CLI for querying the ECMAScript specification.
 package main
 
 import (

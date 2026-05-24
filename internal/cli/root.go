@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Execute runs the root command.
 func Execute() error {
 	return rootCmd.Execute()
 }

@@ -9,7 +9,7 @@ var xrefCmd = &cobra.Command{
 	Short: "Cross-reference resolution",
 	Long:  "Find what references a given entity and what it references.",
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return nil
 	},
 }

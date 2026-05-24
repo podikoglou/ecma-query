@@ -9,7 +9,7 @@ var tocCmd = &cobra.Command{
 	Short: "Table of contents / structural navigation",
 	Long:  "Without arguments: top-level outline. With a section number: children of that section.",
 	Args:  cobra.MaximumNArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	RunE: func(_ *cobra.Command, _ []string) error {
 		return nil
 	},
 }
