@@ -19,7 +19,6 @@ func init() {
 	rootCmd.Version = version
 
 	rootCmd.PersistentFlags().StringVar((*string)(&format), "format", "json", "output format: json, md")
-	rootCmd.PersistentFlags().Bool("no-color", true, "disable ANSI codes")
 
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(searchCmd)
