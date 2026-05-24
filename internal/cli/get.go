@@ -29,14 +29,12 @@ var (
 	getDepth     int
 	getBrief     bool
 	getMaxTokens int
-	getChunk     int
 )
 
 func init() {
 	getCmd.Flags().IntVar(&getDepth, "depth", 1, "recursion depth for inlining nested operations")
 	getCmd.Flags().BoolVar(&getBrief, "brief", false, "return signature and summary only (--depth 0)")
 	getCmd.Flags().IntVar(&getMaxTokens, "max-tokens", 0, "soft truncate output at approximately N tokens")
-	getCmd.Flags().IntVar(&getChunk, "chunk", 1, "when previous output was truncated, request chunk N")
 }
 
 func runGet(_ *cobra.Command, args []string) error {
@@ -90,17 +88,7 @@ func runGet(_ *cobra.Command, args []string) error {
 						break
 					}
 				}
-				if cut > 0 && getChunk > 1 {
-					start := cut * (getChunk - 1)
-					if start >= len(lines) {
-						start = 0
-					}
-					end := start + cut
-					if end > len(lines) {
-						end = len(lines)
-					}
-					md = strings.Join(lines[start:end], "\n")
-				} else if cut > 0 {
+				if cut > 0 {
 					md = strings.Join(lines[:cut], "\n")
 				}
 			}

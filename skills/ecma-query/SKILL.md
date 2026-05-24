@@ -25,7 +25,6 @@ ecma-query get sec-toprimitive --format md
 | Flag | Default | What it does |
 |------|---------|--------------|
 | `--max-tokens N` | 0 (off) | Truncate output at ~N tokens (heuristic: word count / 0.75) |
-| `--chunk N` | 1 | When `--max-tokens` truncated output, get chunk N of the remainder |
 | `--brief` | false | **JSON only.** Signature + summary, no steps |
 | `--depth N` | 1 | **JSON only.** `> 0` includes algorithm steps, `0` = no steps (= `--brief`) |
 
@@ -84,7 +83,7 @@ ecma-query grammar Identifier --format json
 
 1. **Don't know the exact name?** → `search <query> --format md`
 2. **Need the full spec?** → `get <id> --format md`
-3. **Output too long?** → add `--max-tokens N`, then page with `--chunk 2`, `--chunk 3`, etc
+3. **Output too long?** → add `--max-tokens N`
 4. **Need to see references?** → `xref <id> --format md`
 5. **Need a grammar rule?** → `grammar <Name> --format md`
 6. **Need to browse structure?** → `toc [section] --format md`
