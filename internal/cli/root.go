@@ -16,9 +16,9 @@ designed for LLM agent consumption.
 
 Output is deterministic, structured, and parseable. All output,
 including errors, goes to stdout. No ANSI codes, no prompts.`,
-	Args:    cobra.ArbitraryArgs,
-	RunE:    rootRun,
-	Version: "0.1.0",
+	Args:          cobra.ArbitraryArgs,
+	RunE:          rootRun,
+	Version:       "0.1.0",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }
