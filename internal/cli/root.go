@@ -27,9 +27,9 @@ including errors, goes to stdout. No ANSI codes, no prompts.`,
 }
 
 func init() {
-	rootCmd.Flags().StringVar((*string)(&format), "format", "json", "output format: json, md")
-	rootCmd.Flags().String("spec", "latest", "spec edition: es2024, es2025, latest")
-	rootCmd.Flags().Bool("no-color", true, "disable ANSI codes")
+	rootCmd.PersistentFlags().StringVar((*string)(&format), "format", "json", "output format: json, md")
+	rootCmd.PersistentFlags().String("spec", "latest", "spec edition: es2024, es2025, latest")
+	rootCmd.PersistentFlags().Bool("no-color", true, "disable ANSI codes")
 
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(searchCmd)
