@@ -11,7 +11,7 @@ go install github.com/podikoglou/ecma-query@latest
 ## Usage
 
 ```
-ecma-query [--format json|md] [--spec latest] <command> [args...]
+ecma-query [--format json|md] <command> [args...]
 ```
 
 Shorthand — no subcommand defaults to `get`:
