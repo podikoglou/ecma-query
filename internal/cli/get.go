@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/podikoglou/ecma-query/internal/spec"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +24,7 @@ Resolution order:
 	RunE: runGet,
 }
 
-var (
-	getMaxTokens int
-)
+var getMaxTokens int
 
 func init() {
 	getCmd.Flags().IntVar(&getMaxTokens, "max-tokens", 0, "soft truncate output at approximately N tokens")
@@ -40,102 +37,44 @@ func runGet(_ *cobra.Command, args []string) error {
 	cn, multi, matches := resolve(s, query)
 
 	if cn == nil && len(multi) > 1 {
-		ExitAmbiguous(query, matches)
+		exitAmbiguous(query, matches)
 		return nil
 	}
 
 	if cn == nil {
 		succ := suggestions(query, s)
-		resp := ErrorResponse{
-			Error:  "not_found",
-			Query:  query,
-			Wanted: query,
-		}
+		msg := "not found: " + query
 		if len(succ) > 0 {
-			resp.Suggestion = succ[0]
+			msg += "\nsuggestion: " + succ[0]
 		}
-		writeError(CodeNotFound, resp)
+		fmt.Println(msg)
+		os.Exit(int(CodeNotFound))
 		return nil
 	}
 
-	if format == FormatJSON {
-		resp := buildGetJSON(cn, s)
-		printJSON(resp)
-	} else {
-		md, err := s.RenderNode(cn)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "render error:", err)
-			os.Exit(1)
-		}
-		if getMaxTokens > 0 {
-			tokens := estimateTokens(md)
-			if tokens > getMaxTokens {
-				lines := strings.Split(md, "\n")
-				cut := 0
-				cur := 0
-				for i, line := range lines {
-					cur += estimateTokens(line)
-					if cur > getMaxTokens {
-						cut = i
-						break
-					}
-				}
-				if cut > 0 {
-					md = strings.Join(lines[:cut], "\n")
-				}
-			}
-		}
-		fmt.Print(md)
+	md, err := s.RenderNode(cn)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "render error:", err)
+		os.Exit(1)
 	}
-	return nil
-}
-
-func buildGetJSON(cn *spec.ClauseNode, s *spec.Spec) GetResponse {
-	resp := GetResponse{
-		Kind:       kindLabel(cn),
-		Name:       cn.Name,
-		Section:    cn.Section,
-		Title:      cn.H1Text,
-		Breadcrumb: buildBreadcrumb(cn),
-		URL:        clauseURL(cn.ID),
-		Signature:  cn.H1Text,
-	}
-
-	resp.Summary = extractSummary(cn)
-
-	steps := extractSteps(cn)
-	if len(steps) > 0 {
-		resp.Steps = steps
-	}
-
-	if s.Outgoing[cn.ID] != nil {
-		for targetID := range s.Outgoing[cn.ID] {
-			if target, ok := s.ByID[targetID]; ok {
-				name := target.Name
-				if name == "" {
-					name = target.H1Text
-				}
-				if name != "" {
-					resp.SeeAlso = append(resp.SeeAlso, name)
-				}
-			}
-		}
-	}
-
 	if getMaxTokens > 0 {
-		text := resp.Summary
-		for _, s := range resp.Steps {
-			text += s
-		}
-		tokens := estimateTokens(text)
+		tokens := estimateTokens(md)
 		if tokens > getMaxTokens {
-			resp.Truncated = true
-			cut := getMaxTokens
-			if len(resp.Steps) > cut {
-				resp.Steps = resp.Steps[:cut]
+			lines := strings.Split(md, "\n")
+			cut := 0
+			cur := 0
+			for i, line := range lines {
+				cur += estimateTokens(line)
+				if cur > getMaxTokens {
+					cut = i
+					break
+				}
+			}
+			if cut > 0 {
+				md = strings.Join(lines[:cut], "\n")
 			}
 		}
 	}
-
-	return resp
+	fmt.Print(md)
+	return nil
 }
