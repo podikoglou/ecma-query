@@ -28,41 +28,32 @@ func runToc(_ *cobra.Command, args []string) error {
 	if len(args) > 0 && args[0] != "" {
 		cn, ok := s.SectionNums[args[0]]
 		if !ok {
-			ExitNotFound(args[0])
+			exitNotFound(args[0])
 			return nil
 		}
 		entries := buildTocFromNode(cn, tocDepth)
-
-		if format == FormatJSON {
-			printJSON(TocResponse{
-				Root:    &cn.Section,
-				Entries: entries,
-			})
-		} else {
-			renderTocMD(entries, 0)
-		}
+		renderTocMD(entries, 0)
 		return nil
 	}
 
 	entries := buildTocTopLevel(s, tocDepth)
-
-	if format == FormatJSON {
-		printJSON(TocResponse{
-			Entries: entries,
-		})
-	} else {
-		renderTocMD(entries, 0)
-	}
+	renderTocMD(entries, 0)
 	return nil
 }
 
-func buildTocTopLevel(s *spec.Spec, maxDepth int) []TocEntry {
-	var entries []TocEntry
+type tocEntry struct {
+	Section  string
+	Title    string
+	Children []tocEntry
+}
+
+func buildTocTopLevel(s *spec.Spec, maxDepth int) []tocEntry {
+	var entries []tocEntry
 	for _, cn := range s.Nodes {
 		if cn.Parent != nil {
 			continue
 		}
-		entry := TocEntry{
+		entry := tocEntry{
 			Section: cn.Section,
 			Title:   cn.H1Text,
 		}
@@ -74,13 +65,13 @@ func buildTocTopLevel(s *spec.Spec, maxDepth int) []TocEntry {
 	return entries
 }
 
-func buildTocFromNode(node *spec.ClauseNode, depth int) []TocEntry {
+func buildTocFromNode(node *spec.ClauseNode, depth int) []tocEntry {
 	if node == nil || depth <= 0 {
 		return nil
 	}
-	var entries []TocEntry
+	var entries []tocEntry
 	for _, child := range node.Children {
-		entry := TocEntry{
+		entry := tocEntry{
 			Section: child.Section,
 			Title:   child.H1Text,
 		}
@@ -92,7 +83,7 @@ func buildTocFromNode(node *spec.ClauseNode, depth int) []TocEntry {
 	return entries
 }
 
-func renderTocMD(entries []TocEntry, indent int) {
+func renderTocMD(entries []tocEntry, indent int) {
 	prefix := strings.Repeat("  ", indent)
 	for _, entry := range entries {
 		if entry.Section != "" {
