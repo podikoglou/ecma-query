@@ -1,9 +1,12 @@
+// Package cli get command: retrieves a spec entity by exact identifier.
 package cli
 
 import (
 	"github.com/spf13/cobra"
 )
 
+// getCmd is the "get" subcommand — exact identifier resolution against Section number,
+// anchor ID, abstract operation name, built-in method path, internal slot, or spec type.
 var getCmd = &cobra.Command{
 	Use:   "get <IDENTIFIER>",
 	Short: "Retrieve a spec entity by exact identifier",
@@ -23,11 +26,13 @@ Resolution order:
 	},
 }
 
-var getDepth int
-var getStepsOnly bool
-var getBrief bool
-var getMaxTokens int
-var getChunk int
+var (
+	getDepth     int  // getDepth is the recursion depth for inlining nested operations (--depth).
+	getStepsOnly bool // getStepsOnly returns only the numbered algorithm steps (--steps-only).
+	getBrief     bool // getBrief returns signature and summary only, equivalent to --depth 0.
+	getMaxTokens int  // getMaxTokens is the soft token truncation limit for output (--max-tokens).
+	getChunk     int  // getChunk requests a specific chunk of previously truncated output (--chunk).
+)
 
 func init() {
 	getCmd.Flags().IntVar(&getDepth, "depth", 1, "recursion depth for inlining nested operations")
