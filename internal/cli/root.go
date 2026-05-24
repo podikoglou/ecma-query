@@ -2,8 +2,32 @@
 package cli
 
 import (
+	"runtime/debug"
+
 	"github.com/spf13/cobra"
 )
+
+// version is set at build time via -ldflags (goreleaser).
+// Falls back to debug.ReadBuildInfo (go install) then "dev".
+var version = "dev"
+
+func init() {
+	info, ok := debug.ReadBuildInfo()
+	if ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		version = info.Main.Version
+	}
+	rootCmd.Version = version
+
+	rootCmd.PersistentFlags().StringVar((*string)(&format), "format", "json", "output format: json, md")
+	rootCmd.PersistentFlags().String("spec", "latest", "spec edition: es2024, es2025, latest")
+	rootCmd.PersistentFlags().Bool("no-color", true, "disable ANSI codes")
+
+	rootCmd.AddCommand(getCmd)
+	rootCmd.AddCommand(searchCmd)
+	rootCmd.AddCommand(tocCmd)
+	rootCmd.AddCommand(xrefCmd)
+	rootCmd.AddCommand(grammarCmd)
+}
 
 // Execute runs the root command and returns any error.
 func Execute() error {
@@ -21,21 +45,8 @@ Output is deterministic, structured, and parseable. All output,
 including errors, goes to stdout. No ANSI codes, no prompts.`,
 	Args:          cobra.ArbitraryArgs,
 	RunE:          rootRun,
-	Version:       "0.1.0",
 	SilenceErrors: true,
 	SilenceUsage:  true,
-}
-
-func init() {
-	rootCmd.PersistentFlags().StringVar((*string)(&format), "format", "json", "output format: json, md")
-	rootCmd.PersistentFlags().String("spec", "latest", "spec edition: es2024, es2025, latest")
-	rootCmd.PersistentFlags().Bool("no-color", true, "disable ANSI codes")
-
-	rootCmd.AddCommand(getCmd)
-	rootCmd.AddCommand(searchCmd)
-	rootCmd.AddCommand(tocCmd)
-	rootCmd.AddCommand(xrefCmd)
-	rootCmd.AddCommand(grammarCmd)
 }
 
 // rootRun is the RunE handler for the root command. If no subcommand is given

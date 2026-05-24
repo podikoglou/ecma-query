@@ -1,3 +1,3 @@
 .PHONY: build
 build:
-	go build ./...
+	goreleaser build --snapshot --clean
