@@ -5,7 +5,7 @@ description: Query the ECMAScript specification from the CLI. Use when you need 
 
 # ecma-query
 
-CLI for looking up the ECMAScript spec. Always use `--format md` for readable markdown output (default is JSON).
+CLI for looking up the ECMAScript spec. All output is markdown.
 
 Bare `ecma-query <id>` is shorthand for `ecma-query get <id>`.
 
@@ -16,10 +16,10 @@ Bare `ecma-query <id>` is shorthand for `ecma-query get <id>`.
 Resolution order: section number (`7.1.4`) → anchor ID (`sec-toprimitive`) → abstract operation (`ToNumber`) → built-in method (`Array.prototype.map`) → internal slot (`[[Prototype]]`) → spec type (`PropertyDescriptor`). Operation names are case-insensitive and normalized (spaces/parens stripped).
 
 ```
-ecma-query get ToNumber --format md
-ecma-query get Array.prototype.map --format md
-ecma-query get 7.1.4 --format md
-ecma-query get sec-toprimitive --format md
+ecma-query get ToNumber
+ecma-query get Array.prototype.map
+ecma-query get 7.1.4
+ecma-query get sec-toprimitive
 ```
 
 | Flag | Default | What it does |
@@ -31,9 +31,9 @@ ecma-query get sec-toprimitive --format md
 Full-text search with ranked results and snippets. Tokens shorter than 3 chars and common stop words are silently excluded. Use when you don't know the exact name.
 
 ```
-ecma-query search "promise" --format md
-ecma-query search "promise" --kind operation --format md
-ecma-query search "promise" --kind grammar --limit 5 --format md
+ecma-query search "promise"
+ecma-query search "promise" --kind operation
+ecma-query search "promise" --kind grammar --limit 5
 ```
 
 | Flag | Default | What it does |
@@ -46,8 +46,8 @@ ecma-query search "promise" --kind grammar --limit 5 --format md
 Without args: top-level chapters. With a section number: children of that section.
 
 ```
-ecma-query toc --format md
-ecma-query toc 27.2 --format md
+ecma-query toc
+ecma-query toc 27.2
 ```
 
 | Flag | Default | What it does |
@@ -59,8 +59,8 @@ ecma-query toc 27.2 --format md
 Shows incoming and outgoing references. Same resolution and normalization as `get`.
 
 ```
-ecma-query xref ToNumber --format md
-ecma-query xref IsCallable --format md --direction incoming
+ecma-query xref ToNumber
+ecma-query xref IsCallable --direction incoming
 ```
 
 | Flag | Default | What it does |
@@ -69,25 +69,21 @@ ecma-query xref IsCallable --format md --direction incoming
 
 ### `grammar <ProductionName>` — grammar productions
 
-Case-sensitive. Use `search --kind grammar` to discover production names. **This command has its own `--format` flag** (default `ebnf`) — the global `--format` is ignored.
+Case-sensitive. Use `search --kind grammar` to discover production names.
 
 ```
-ecma-query grammar Identifier              # defaults to EBNF
-ecma-query grammar Identifier --format md
-ecma-query grammar Identifier --format json
+ecma-query grammar Identifier
 ```
 
 ## Workflow
 
-1. **Don't know the exact name?** → `search <query> --format md`
-2. **Need the full spec?** → `get <id> --format md`
+1. **Don't know the exact name?** → `search <query>`
+2. **Need the full spec?** → `get <id>`
 3. **Output too long?** → add `--max-tokens N`
-4. **Need to see references?** → `xref <id> --format md`
-5. **Need a grammar rule?** → `grammar <Name> --format md`
-6. **Need to browse structure?** → `toc [section] --format md`
+4. **Need to see references?** → `xref <id>`
+5. **Need a grammar rule?** → `grammar <Name>`
+6. **Need to browse structure?** → `toc [section]`
 
 ## Notes
 
-- `--spec` is defined but not implemented — don't bother passing it.
-- All output is deterministic, no ANSI codes.
 - Operation names are normalized: `get tonumber` works the same as `get ToNumber`.

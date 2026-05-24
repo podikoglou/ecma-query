@@ -11,7 +11,7 @@ go install github.com/podikoglou/ecma-query@latest
 ## Usage
 
 ```
-ecma-query [--format json|md] <command> [args...]
+ecma-query <command> [args...]
 ```
 
 Shorthand — no subcommand defaults to `get`:
@@ -49,24 +49,17 @@ ecma-query toc 23.1 --depth 3   # children of 23.1
 ecma-query xref OrdinaryObjectCreate --direction incoming
 ```
 
-**grammar** — grammar production lookup (defaults to EBNF):
+**grammar** — grammar production lookup:
 ```
 ecma-query grammar ArrowFunction
-ecma-query grammar IfStatement --format json
 ```
-
-### Output formats
-
-- `json` (default) — structured JSON to stdout
-- `md` — markdown with headings, breadcrumbs, and links
-- `ebnf` — raw grammar text (grammar command only)
 
 ### Exit codes
 
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 1 | Not found (structured error on stdout) |
+| 1 | Not found (text error on stdout) |
 | 2 | Ambiguous match (disambiguation list on stdout) |
 
 ### Build from source
