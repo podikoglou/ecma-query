@@ -26,24 +26,16 @@ Resolution order:
 }
 
 var (
-	getDepth     int
-	getBrief     bool
 	getMaxTokens int
 )
 
 func init() {
-	getCmd.Flags().IntVar(&getDepth, "depth", 1, "recursion depth for inlining nested operations")
-	getCmd.Flags().BoolVar(&getBrief, "brief", false, "return signature and summary only (--depth 0)")
 	getCmd.Flags().IntVar(&getMaxTokens, "max-tokens", 0, "soft truncate output at approximately N tokens")
 }
 
 func runGet(_ *cobra.Command, args []string) error {
 	query := args[0]
 	s := getSpec()
-
-	if getBrief {
-		getDepth = 0
-	}
 
 	cn, multi, matches := resolve(s, query)
 
@@ -112,7 +104,7 @@ func buildGetJSON(cn *spec.ClauseNode, s *spec.Spec) GetResponse {
 	resp.Summary = extractSummary(cn)
 
 	steps := extractSteps(cn)
-	if getDepth > 0 && len(steps) > 0 {
+	if len(steps) > 0 {
 		resp.Steps = steps
 	}
 

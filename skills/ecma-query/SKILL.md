@@ -25,8 +25,6 @@ ecma-query get sec-toprimitive --format md
 | Flag | Default | What it does |
 |------|---------|--------------|
 | `--max-tokens N` | 0 (off) | Truncate output at ~N tokens (heuristic: word count / 0.75) |
-| `--brief` | false | **JSON only.** Signature + summary, no steps |
-| `--depth N` | 1 | **JSON only.** `> 0` includes algorithm steps, `0` = no steps (= `--brief`) |
 
 ### `search <query>` — fuzzy find
 

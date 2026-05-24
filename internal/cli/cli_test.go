@@ -102,17 +102,6 @@ func TestGrammarCommandMD(t *testing.T) {
 	}
 }
 
-func TestGetBrief(t *testing.T) {
-	format = FormatJSON
-	defer func() { format = FormatJSON }()
-	getBrief = true
-	defer func() { getBrief = false }()
-	err := runGet(nil, []string{"sec-toprimitive"})
-	if err != nil {
-		t.Logf("get brief returned error: %v", err)
-	}
-}
-
 func TestGetWithMaxTokens(t *testing.T) {
 	format = FormatJSON
 	defer func() { format = FormatJSON }()
