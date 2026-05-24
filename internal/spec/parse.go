@@ -8,9 +8,14 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Load parses the embedded spec.html into a Spec tree.
+// Load parses the embedded spec.html into a Spec tree and builds all indexes.
 func Load() (*Spec, error) {
-	return Parse(specHTML)
+	s, err := Parse(specHTML)
+	if err != nil {
+		return nil, err
+	}
+	s.Index()
+	return s, nil
 }
 
 // Parse parses HTML bytes into a Spec clause tree.
