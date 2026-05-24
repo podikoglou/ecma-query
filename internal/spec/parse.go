@@ -1,5 +1,7 @@
 package spec
 
+// This file walks the spec DOM tree and builds a clause tree from <emu-clause> elements.
+
 import (
 	"bytes"
 	"fmt"
@@ -33,6 +35,8 @@ func Parse(data []byte) (*Spec, error) {
 	return s, nil
 }
 
+// walk recursively traverses the HTML tree, building ClauseNodes from emu-* elements.
+// It returns the first child clause found (as a convenience for the caller).
 func walk(node *html.Node, depth int, parent *ClauseNode, spec *Spec) *ClauseNode {
 	var childClause *ClauseNode
 
@@ -43,6 +47,8 @@ func walk(node *html.Node, depth int, parent *ClauseNode, spec *Spec) *ClauseNod
 
 		kind := clauseKind(c.Data)
 		if kind == "" {
+			// why: the spec HTML wraps emu-* elements in intermediate <div> etc.;
+			// we must recurse into them to find nested clause/annex/intro elements.
 			sub := walk(c, depth, parent, spec)
 			if sub != nil && childClause == nil {
 				childClause = sub
@@ -70,6 +76,8 @@ func walk(node *html.Node, depth int, parent *ClauseNode, spec *Spec) *ClauseNod
 	return childClause
 }
 
+// clauseKind maps HTML tag names to Spec clause kinds.
+// Returns "" for non-clause elements.
 func clauseKind(tag string) string {
 	switch tag {
 	case "emu-clause":
@@ -83,6 +91,8 @@ func clauseKind(tag string) string {
 	}
 }
 
+// buildClauseNode creates a ClauseNode from an HTML element node,
+// extracting id and type attributes and the heading text.
 func buildClauseNode(node *html.Node, kind string, depth int, parent *ClauseNode) *ClauseNode {
 	cn := &ClauseNode{
 		Kind:     kind,
@@ -104,6 +114,7 @@ func buildClauseNode(node *html.Node, kind string, depth int, parent *ClauseNode
 	return cn
 }
 
+// extractHeading finds the heading text from a clause's first <h1> or <h2> child.
 func extractHeading(cn *ClauseNode) string {
 	for c := cn.HTMLNode.FirstChild; c != nil; c = c.NextSibling {
 		if c.Type != html.ElementNode {
@@ -126,6 +137,8 @@ func extractHeading(cn *ClauseNode) string {
 	return ""
 }
 
+// textContent extracts the concatenated text content of an HTML node tree,
+// skipping all tags and returning trimmed whitespace.
 func textContent(node *html.Node) string {
 	var buf strings.Builder
 	var collect func(*html.Node)
