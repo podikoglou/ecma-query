@@ -1,12 +1,14 @@
-// Package cli get command: retrieves a spec entity by exact identifier.
 package cli
 
 import (
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/podikoglou/ecma-query/internal/spec"
 	"github.com/spf13/cobra"
 )
 
-// getCmd is the "get" subcommand — exact identifier resolution against Section number,
-// anchor ID, abstract operation name, built-in method path, internal slot, or spec type.
 var getCmd = &cobra.Command{
 	Use:   "get <IDENTIFIER>",
 	Short: "Retrieve a spec entity by exact identifier",
@@ -20,18 +22,15 @@ Resolution order:
   5. Internal slot (e.g. [[Prototype]])
   6. Spec type (e.g. PropertyDescriptor)`,
 	Args: cobra.ExactArgs(1),
-	RunE: func(_ *cobra.Command, args []string) error {
-		ExitNotFound(args[0])
-		return nil
-	},
+	RunE: runGet,
 }
 
 var (
-	getDepth     int  // getDepth is the recursion depth for inlining nested operations (--depth).
-	getStepsOnly bool // getStepsOnly returns only the numbered algorithm steps (--steps-only).
-	getBrief     bool // getBrief returns signature and summary only, equivalent to --depth 0.
-	getMaxTokens int  // getMaxTokens is the soft token truncation limit for output (--max-tokens).
-	getChunk     int  // getChunk requests a specific chunk of previously truncated output (--chunk).
+	getDepth     int
+	getStepsOnly bool
+	getBrief     bool
+	getMaxTokens int
+	getChunk     int
 )
 
 func init() {
@@ -40,4 +39,142 @@ func init() {
 	getCmd.Flags().BoolVar(&getBrief, "brief", false, "return signature and summary only (--depth 0)")
 	getCmd.Flags().IntVar(&getMaxTokens, "max-tokens", 0, "soft truncate output at approximately N tokens")
 	getCmd.Flags().IntVar(&getChunk, "chunk", 1, "when previous output was truncated, request chunk N")
+}
+
+func runGet(_ *cobra.Command, args []string) error {
+	query := args[0]
+	s := getSpec()
+
+	if getBrief {
+		getDepth = 0
+	}
+
+	cn, multi, matches := resolve(s, query)
+
+	if cn == nil && len(multi) > 1 {
+		ExitAmbiguous(query, matches)
+		return nil
+	}
+
+	if cn == nil {
+		succ := suggestions(query, s)
+		resp := ErrorResponse{
+			Error:  "not_found",
+			Query:  query,
+			Wanted: query,
+		}
+		if len(succ) > 0 {
+			resp.Suggestion = succ[0]
+		}
+		writeError(CodeNotFound, resp)
+		return nil
+	}
+
+	if format == FormatJSON {
+		resp := buildGetJSON(cn, s)
+		printJSON(resp)
+	} else {
+		md, err := s.RenderNode(cn)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "render error:", err)
+			os.Exit(1)
+		}
+		if getStepsOnly {
+			md = renderStepsOnly(cn, s)
+		}
+		if getMaxTokens > 0 {
+			tokens := estimateTokens(md)
+			if tokens > getMaxTokens {
+				lines := strings.Split(md, "\n")
+				cut := 0
+				cur := 0
+				for i, line := range lines {
+					cur += estimateTokens(line)
+					if cur > getMaxTokens {
+						cut = i
+						break
+					}
+				}
+				if cut > 0 && getChunk > 1 {
+					start := cut * (getChunk - 1)
+					if start >= len(lines) {
+						start = 0
+					}
+					end := start + cut
+					if end > len(lines) {
+						end = len(lines)
+					}
+					md = strings.Join(lines[start:end], "\n")
+				} else if cut > 0 {
+					md = strings.Join(lines[:cut], "\n")
+				}
+			}
+		}
+		fmt.Print(md)
+	}
+	return nil
+}
+
+func buildGetJSON(cn *spec.ClauseNode, s *spec.Spec) GetResponse {
+	resp := GetResponse{
+		Kind:       kindLabel(cn),
+		Name:       cn.Name,
+		Section:    cn.Section,
+		Title:      cn.H1Text,
+		Breadcrumb: buildBreadcrumb(cn),
+		URL:        clauseURL(cn.ID),
+		Signature:  cn.H1Text,
+	}
+
+	if !getStepsOnly {
+		resp.Summary = extractSummary(cn)
+	}
+
+	steps := extractSteps(cn)
+	if getStepsOnly && len(steps) > 0 {
+		resp.Steps = steps
+	} else if getDepth > 0 && len(steps) > 0 {
+		resp.Steps = steps
+	}
+
+	if s.Outgoing[cn.ID] != nil {
+		for targetID := range s.Outgoing[cn.ID] {
+			if target, ok := s.ByID[targetID]; ok {
+				name := target.Name
+				if name == "" {
+					name = target.H1Text
+				}
+				if name != "" {
+					resp.SeeAlso = append(resp.SeeAlso, name)
+				}
+			}
+		}
+	}
+
+	if getMaxTokens > 0 {
+		text := resp.Summary
+		for _, s := range resp.Steps {
+			text += s
+		}
+		tokens := estimateTokens(text)
+		if tokens > getMaxTokens {
+			resp.Truncated = true
+			cut := getMaxTokens
+			if len(resp.Steps) > cut {
+				resp.Steps = resp.Steps[:cut]
+			}
+		}
+	}
+
+	return resp
+}
+
+func renderStepsOnly(cn *spec.ClauseNode, _ *spec.Spec) string {
+	var buf strings.Builder
+	steps := extractSteps(cn)
+	for _, step := range steps {
+		buf.WriteString(step)
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
